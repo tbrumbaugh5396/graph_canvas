@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from typing import Optional
 
 import typer
 
@@ -37,9 +38,9 @@ def api(
 def web(
     host: str = typer.Option("0.0.0.0", help="Host interface to bind"),
     port: int = typer.Option(5173, help="Port for the Vite dev server"),
-    api_url: str = typer.Option(
-        "http://127.0.0.1:8000",
-        help="Base URL for the Graph Canvas API (must match running backend)",
+    api_url: Optional[str] = typer.Option(
+        None,
+        help="Base URL for the Graph Canvas API (defaults to current origin if omitted)",
     ),
     skip_install: bool = typer.Option(
         False, "--skip-install", help="Skip npm install even if node_modules missing"
@@ -61,7 +62,7 @@ def _serve_api(host: str, port: int, reload: bool) -> None:
     _serve(host=host, port=port, reload=reload)
 
 
-def _launch_web_ui(host: str, port: int, api_url: str, install: bool) -> None:
+def _launch_web_ui(host: str, port: int, api_url: Optional[str], install: bool) -> None:
     from .presentation.web.runner import launch_web_ui as _launch_web
 
     _launch_web(port=port, host=host, api_url=api_url, install=install)
