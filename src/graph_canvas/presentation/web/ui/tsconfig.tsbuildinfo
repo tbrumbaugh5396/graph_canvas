@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/types.ts","./src/components/graphcanvas.tsx","./src/components/graphdetails.tsx","./src/components/graphform.tsx","./src/components/graphinspector.tsx","./src/components/graphlist.tsx","./src/components/graphtasklist.tsx","./src/components/gridcontrols.tsx","./src/hooks/usegraphworkspace.ts"],"version":"5.9.3"}

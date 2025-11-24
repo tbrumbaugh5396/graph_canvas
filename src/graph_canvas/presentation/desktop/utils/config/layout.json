@@ -1,0 +1,31 @@
+{
+    "spring": {
+        "k": 1.0,
+        "c": 0.1,
+        "l": 100,
+        "max_iterations": 100
+    },
+    "circle": {
+        "radius": null,
+        "start_angle": 0.0,
+        "angle_step": null
+    },
+    "tree": {
+        "spacing_x": 100.0,
+        "spacing_y": 100.0,
+        "orientation": "TB"
+    },
+    "grid": {
+        "spacing_x": 100.0,
+        "spacing_y": 100.0,
+        "columns": null
+    },
+    "radial": {
+        "levels": null,
+        "radius": 100.0
+    },
+    "layered": {
+        "layer_spacing": 100.0,
+        "node_spacing": 50.0
+    }
+}

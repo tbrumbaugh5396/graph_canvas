@@ -1,0 +1,83 @@
+// Layout Demo - Sample graph showing layout algorithm features
+digraph LayoutDemo {
+    // Graph metadata with layout information
+    bgcolor="#f5f5f5";
+    _grid_visible="true";
+    _grid_size="20";
+    _grid_color="#e0e0e0";
+    _last_layout="organic";
+    _graph_density="0.267";
+    _suggested_layouts="[\"spring\", \"organic\", \"compact\"]";
+    _graph_metadata="{\"description\": \"Demonstration of layout algorithms\", \"optimized_for\": \"organic_layout\"}";
+
+    // Central hub node (highest connectivity)
+    hub [label="Central Hub", fillcolor="#ff6b6b", style="filled", color="#d63031",
+         _x="0", _y="0", _z="0", _font_size="14", _border_width="3"];
+    
+    // Primary cluster nodes
+    cluster1 [label="Process A", fillcolor="#4ecdc4", style="filled", color="#00b894",
+              _x="-150", _y="-100", _z="0", _font_size="12"];
+    cluster2 [label="Process B", fillcolor="#45b7d1", style="filled", color="#0984e3",
+              _x="150", _y="-100", _z="0", _font_size="12"];
+    cluster3 [label="Process C", fillcolor="#96ceb4", style="filled", color="#00b894",
+              _x="0", _y="150", _z="0", _font_size="12"];
+    
+    // Secondary nodes
+    sub1a [label="Sub A1", fillcolor="#ffeaa7", style="filled", color="#fdcb6e",
+           _x="-250", _y="-50", _z="0", _font_size="10"];
+    sub1b [label="Sub A2", fillcolor="#ffeaa7", style="filled", color="#fdcb6e",
+           _x="-200", _y="-150", _z="0", _font_size="10"];
+    
+    sub2a [label="Sub B1", fillcolor="#fd79a8", style="filled", color="#e84393",
+           _x="200", _y="-50", _z="0", _font_size="10"];
+    sub2b [label="Sub B2", fillcolor="#fd79a8", style="filled", color="#e84393",
+           _x="250", _y="-150", _z="0", _font_size="10"];
+    
+    sub3a [label="Sub C1", fillcolor="#a29bfe", style="filled", color="#6c5ce7",
+           _x="-50", _y="200", _z="0", _font_size="10"];
+    sub3b [label="Sub C2", fillcolor="#a29bfe", style="filled", color="#6c5ce7",
+           _x="50", _y="200", _z="0", _font_size="10"];
+
+    // Main hub connections (spring layout optimized)
+    hub -> cluster1 [label="Primary", color="#2d3436", penwidth="3",
+                     _rendering_type="curved", _arrow_position="0.6",
+                     _control_points="[[-75, -50]]"];
+    hub -> cluster2 [label="Primary", color="#2d3436", penwidth="3",
+                     _rendering_type="curved", _arrow_position="0.6",
+                     _control_points="[[75, -50]]"];
+    hub -> cluster3 [label="Primary", color="#2d3436", penwidth="3",
+                     _rendering_type="curved", _arrow_position="0.6",
+                     _control_points="[[0, 75]]"];
+
+    // Cluster to sub-node connections (tree layout structure)
+    cluster1 -> sub1a [label="Detail", color="#636e72", penwidth="2",
+                       _rendering_type="straight", _arrow_position="0.8"];
+    cluster1 -> sub1b [label="Detail", color="#636e72", penwidth="2",
+                       _rendering_type="straight", _arrow_position="0.8"];
+    
+    cluster2 -> sub2a [label="Detail", color="#636e72", penwidth="2",
+                       _rendering_type="straight", _arrow_position="0.8"];
+    cluster2 -> sub2b [label="Detail", color="#636e72", penwidth="2",
+                       _rendering_type="straight", _arrow_position="0.8"];
+    
+    cluster3 -> sub3a [label="Detail", color="#636e72", penwidth="2",
+                       _rendering_type="straight", _arrow_position="0.8"];
+    cluster3 -> sub3b [label="Detail", color="#636e72", penwidth="2",
+                       _rendering_type="straight", _arrow_position="0.8"];
+
+    // Cross-cluster connections (best for organic layout)
+    sub1a -> sub2a [label="Cross Link", color="#74b9ff", penwidth="1", style="dashed",
+                    _rendering_type="bezier", _arrow_position="0.5",
+                    _control_points="[[-125, -25], [125, -75]]"];
+    sub2b -> sub3b [label="Cross Link", color="#74b9ff", penwidth="1", style="dashed",
+                    _rendering_type="bezier", _arrow_position="0.5",
+                    _control_points="[[150, 25], [100, 125]]"];
+    sub3a -> sub1b [label="Cross Link", color="#74b9ff", penwidth="1", style="dashed",
+                    _rendering_type="bezier", _arrow_position="0.5",
+                    _control_points="[[-125, 100], [-175, -25]]"];
+
+    // Self-loop for demonstration
+    hub -> hub [label="Self Process", color="#fab1a0", penwidth="2",
+                _rendering_type="bspline", _arrow_position="0.9",
+                _control_points="[[-50, -50], [50, -50]]"];
+}

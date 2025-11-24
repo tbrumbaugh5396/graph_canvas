@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: graph-canvas
+Version: 0.1.0
+Summary: Graph Canvas / Graph Editor (wxPython)
+Requires-Python: >=3.9
+Requires-Dist: mvc-mvu@ git+https://github.com/tbrumbaugh5396/wxPython-MVC-MVU-architecture.git@76cfa1e78aaf33b92273402cc9f92bcc3eabca8e
+Requires-Dist: numpy<2.0.0
+Requires-Dist: typing_extensions==4.14.0
+Requires-Dist: wxPython==4.2.1
+Requires-Dist: Pillow==10.1.0
+Requires-Dist: fastapi==0.115.0
+Requires-Dist: uvicorn[standard]==0.30.6
+Requires-Dist: requests==2.32.3
+Requires-Dist: typer==0.12.3
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

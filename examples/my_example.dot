@@ -1,0 +1,14 @@
+digraph Untitled_Graph {
+    // Graph metadata and visual properties
+    bgcolor="#ffffff";
+    _grid_visible="True";
+    _grid_size="20";
+    _grid_color="#c8c8c8";
+    _graph_density="2.000";
+    _suggested_layouts="[\"circle\", \"grid\", \"tree\"]";
+
+    node_39018113_9bf5_47a2_b93d_dffd6a19a7d1 [label="New Node", pos="18.0,14.0", fillcolor="#f0f0f0", style="filled", color="#3c3c3c", width="0.833", height="0.556", _node_id="39018113-9bf5-47a2-b93d-dffd6a19a7d1", _x="18.0", _y="14.0", _z="0.0", fontsize="12", _font_size="12", _border_width="3", fontcolor="#000000", _text_color="#000000"];
+    node_08a954dd_90c7_439a_baf6_92dfc080e046 [label="New Node", pos="27.0,14.0", fillcolor="#f0f0f0", style="filled", color="#3c3c3c", width="0.833", height="0.556", _node_id="08a954dd-90c7-439a-baf6-92dfc080e046", _x="27.0", _y="14.0", _z="0.0", fontsize="12", _font_size="12", _border_width="3", fontcolor="#000000", _text_color="#000000"];
+    node_08a954dd_90c7_439a_baf6_92dfc080e046 -- node_39018113_9bf5_47a2_b93d_dffd6a19a7d1 [color="#282828", penwidth="3", _edge_id="4997e481-c427-436d-9e6c-2d6a75a29d55", _rendering_type="curved", _arrow_position="0.5", _control_points="[[445.11111111111114, 327.1111111111111]]", fontcolor="#000000", _text_color="#000000", fontsize="11", _font_size="11", _arrow_size="18", _directed="false"];
+    node_08a954dd_90c7_439a_baf6_92dfc080e046 -> node_39018113_9bf5_47a2_b93d_dffd6a19a7d1 [color="#282828", penwidth="3", _edge_id="9ca5f221-b04c-4256-a917-2d301762086c", _arrow_position="0.5", _control_points="[[450.0, 235.0]]", fontcolor="#000000", _text_color="#000000", fontsize="11", _font_size="11", _arrow_size="18"];
+}

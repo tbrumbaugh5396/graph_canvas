@@ -1,0 +1,10 @@
+mvc-mvu @ git+https://github.com/tbrumbaugh5396/wxPython-MVC-MVU-architecture.git@76cfa1e78aaf33b92273402cc9f92bcc3eabca8e
+numpy<2.0.0
+typing_extensions==4.14.0
+wxPython==4.2.1
+Pillow==10.1.0
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+requests==2.32.3
+typer==0.12.3
+pytest==8.3.3

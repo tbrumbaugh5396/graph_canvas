@@ -1,0 +1,222 @@
+{
+  "id": "sample-graph-001",
+  "name": "Sample Graph",
+  "metadata": {
+    "description": "A sample graph for testing the graph editor",
+    "created_by": "Graph Editor",
+    "version": "1.0"
+  },
+  "nodes": [
+    {
+      "id": "node-1",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "text": "Start Node",
+      "metadata": {
+        "type": "start",
+        "importance": "high"
+      },
+      "width": 80,
+      "height": 40,
+      "color": [200, 255, 200],
+      "text_color": [0, 0, 0],
+      "border_color": [0, 120, 0],
+      "border_width": 3,
+      "font_size": 12,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "node-2",
+      "x": 200,
+      "y": 0,
+      "z": 0,
+      "text": "Process Node",
+      "metadata": {
+        "type": "process",
+        "priority": "medium"
+      },
+      "width": 100,
+      "height": 50,
+      "color": [200, 200, 255],
+      "text_color": [0, 0, 0],
+      "border_color": [0, 0, 120],
+      "border_width": 3,
+      "font_size": 12,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "node-3",
+      "x": 400,
+      "y": 0,
+      "z": 0,
+      "text": "End Node",
+      "metadata": {
+        "type": "end",
+        "importance": "high"
+      },
+      "width": 80,
+      "height": 40,
+      "color": [255, 200, 200],
+      "text_color": [0, 0, 0],
+      "border_color": [120, 0, 0],
+      "border_width": 3,
+      "font_size": 12,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "node-4",
+      "x": 100,
+      "y": 150,
+      "z": 0,
+      "text": "Decision Node",
+      "metadata": {
+        "type": "decision",
+        "options": ["yes", "no"]
+      },
+      "width": 120,
+      "height": 60,
+      "color": [255, 255, 150],
+      "text_color": [0, 0, 0],
+      "border_color": [150, 150, 0],
+      "border_width": 2,
+      "font_size": 12,
+      "visible": true,
+      "locked": false
+    },
+    {
+      "id": "node-5",
+      "x": 300,
+      "y": 150,
+      "z": 0,
+      "text": "Alternative",
+      "metadata": {
+        "type": "alternative",
+        "condition": "fallback"
+      },
+      "width": 90,
+      "height": 45,
+      "color": [255, 200, 150],
+      "text_color": [0, 0, 0],
+      "border_color": [150, 100, 0],
+      "border_width": 2,
+      "font_size": 12,
+      "visible": true,
+      "locked": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source_id": "node-1",
+      "target_id": "node-2",
+      "text": "Start Process",
+      "metadata": {
+        "weight": 1.0,
+        "type": "flow"
+      },
+      "color": [40, 40, 40],
+      "width": 3,
+      "text_color": [0, 0, 0],
+      "font_size": 10,
+      "arrow_size": 18,
+      "line_style": "solid",
+      "control_points": [],
+      "custom_position": false,
+      "visible": true,
+      "locked": false,
+      "directed": true
+    },
+    {
+      "id": "edge-2",
+      "source_id": "node-2",
+      "target_id": "node-3",
+      "text": "Bidirectional",
+      "metadata": {
+        "weight": 1.0,
+        "type": "bidirectional"
+      },
+      "color": [40, 40, 40],
+      "width": 3,
+      "text_color": [0, 0, 0],
+      "font_size": 10,
+      "arrow_size": 18,
+      "line_style": "solid",
+      "control_points": [],
+      "custom_position": false,
+      "visible": true,
+      "locked": false,
+      "directed": false
+    },
+    {
+      "id": "edge-3",
+      "source_id": "node-1",
+      "target_id": "node-4",
+      "text": "Branch",
+      "metadata": {
+        "weight": 0.5,
+        "type": "branch"
+      },
+      "color": [100, 100, 100],
+      "width": 2,
+      "text_color": [0, 0, 0],
+      "font_size": 10,
+      "arrow_size": 18,
+      "line_style": "dashed",
+      "control_points": [],
+      "custom_position": false,
+      "visible": true,
+      "locked": false,
+      "directed": true
+    },
+    {
+      "id": "edge-4",
+      "source_id": "node-4",
+      "target_id": "node-5",
+      "text": "Peer Connection",
+      "metadata": {
+        "weight": 0.5,
+        "type": "peer"
+      },
+      "color": [150, 150, 0],
+      "width": 2,
+      "text_color": [0, 0, 0],
+      "font_size": 10,
+      "arrow_size": 18,
+      "line_style": "solid",
+      "control_points": [],
+      "custom_position": false,
+      "visible": true,
+      "locked": false,
+      "directed": false
+    },
+    {
+      "id": "edge-5",
+      "source_id": "node-5",
+      "target_id": "node-3",
+      "text": "Merge",
+      "metadata": {
+        "weight": 0.5,
+        "type": "merge"
+      },
+      "color": [150, 0, 0],
+      "width": 2,
+      "text_color": [0, 0, 0],
+      "font_size": 10,
+      "arrow_size": 18,
+      "line_style": "solid",
+      "control_points": [],
+      "custom_position": false,
+      "visible": true,
+      "locked": false,
+      "directed": true
+    }
+  ],
+  "background_color": [255, 255, 255],
+  "grid_visible": true,
+  "grid_size": 20,
+  "grid_color": [200, 200, 200]
+} 

@@ -1,0 +1,5 @@
+[console_scripts]
+graph-canvas = main:main
+
+[gui_scripts]
+graph-canvas-gui = main:main

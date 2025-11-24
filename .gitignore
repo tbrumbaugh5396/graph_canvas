@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Node / React
+src/graph_canvas/presentation/web/ui/node_modules/
+src/graph_canvas/presentation/web/ui/dist/
+src/graph_canvas/presentation/web/ui/.vite/
+
+# macOS
+.DS_Store
+
+

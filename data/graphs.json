@@ -1,0 +1,292 @@
+[
+  {
+    "id": "workspace",
+    "name": "Todo List",
+    "graph_type": "ubergraph",
+    "directed": true,
+    "metadata": {},
+    "nodes": [
+      {
+        "id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
+        "text": "Pickup room",
+        "x": 156.36605977103352,
+        "y": -403.0918582177426,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "59b5920b-ce45-4431-bd96-170a0dd644bd",
+        "text": "Sell xbox",
+        "x": -79.6100677986392,
+        "y": -346.54679480729664,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "ce2fe660-b29b-416d-ade8-82f9f96aba95",
+        "text": "Clear desk",
+        "x": 304.8537713571528,
+        "y": -288.1632349591157,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "5668284c-2dcd-43f3-aea6-4f6f899eac3f",
+        "text": "Make bed",
+        "x": 5.5605358034094365,
+        "y": -290.07662839059634,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "24fe5007-e2cf-45a9-a787-d1be1661a29d",
+        "text": "Wash clothes",
+        "x": 306.4097574867854,
+        "y": -396.52365462086277,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "9bba3f91-ba59-4398-a15a-92e1be5c8772",
+        "text": "Organize papers / books",
+        "x": -82.7539451721268,
+        "y": -403.1326302291612,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "06c466c7-8406-4304-a864-455a72adb9a6",
+        "text": "Clear email",
+        "x": -241.59016147681723,
+        "y": -361.4645760053601,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "ad487fa8-a74b-430f-846b-b9be46a7f44a",
+        "text": "Clear notifications on phone",
+        "x": -339.5521057757631,
+        "y": -268.22020459114776,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "ad764509-3223-47de-a916-4dc58341877e",
+        "text": "Brush teeth",
+        "x": 242.5753600949348,
+        "y": -104.43749351941463,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "40d01ca0-73a1-4720-b063-84a25cd3089e",
+        "text": "Trim beard",
+        "x": 480.1394386315452,
+        "y": -104.52768690512048,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "60121615-badd-4b0b-987f-34f225e2e374",
+        "text": "Finish graph canvas",
+        "x": -77.99381457406463,
+        "y": -253.41398008401305,
+        "z": 0.0,
+        "metadata": {
+          "status": "in_progress"
+        }
+      },
+      {
+        "id": "243015af-5ca5-4a1f-8e94-bc3fdfcd2838",
+        "text": "Clean Cheries",
+        "x": 123.28524556919147,
+        "y": -27.20974070357481,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "1effdf99-22f7-4900-b3ed-060e462dd3c4",
+        "text": "Anatomy App / 75 hard",
+        "x": 159.42987064989387,
+        "y": -201.25416461692035,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "c0bf7fc2-c461-4d1d-9d57-54fe866b78b2",
+        "text": "Webscraping",
+        "x": 310.2823701445238,
+        "y": -198.3516315084961,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "bdd9e788-10de-4307-918b-ccde55f9c15b",
+        "text": "Clear history & photos",
+        "x": -271.33746162606667,
+        "y": -172.1313766088835,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "84cba7dc-f408-4a08-98f1-e748f360f677",
+        "text": "Node",
+        "x": 151.35859958672364,
+        "y": -285.08042618902425,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "d3057553-da01-4c2f-91d9-0f1312f579b2",
+        "text": "Fix line / mainline selection",
+        "x": -76.84985570947346,
+        "y": -182.217953428474,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "4b66273e-0dee-4ef2-8684-bfb3ff8e3bd8",
+        "text": "Refactor Code / Update Docs / Package / Documentation for the packaging process",
+        "x": -89.5282839303352,
+        "y": -113.82709465255773,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "3f975adf-b07b-46c6-9d05-3b8dea60f7ba",
+        "text": "Build template AI prompt with technology, documentation, architecture, web, api, desktop, command line, mocks, tests",
+        "x": 444.39243621166213,
+        "y": -506.4566700718821,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "9ebab1cd-d551-4e62-99fb-360257cc3f9e",
+        "text": "Build my own LLM / AI",
+        "x": 549.195817795433,
+        "y": -237.63264740997536,
+        "z": 0.0,
+        "metadata": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e53c93ce-5609-4d30-9a52-e26c0ee97d4b",
+        "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
+        "target_id": "ce2fe660-b29b-416d-ade8-82f9f96aba95",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "79657f07-3569-4373-8f0b-2e8f7dc1a9b4"
+        ],
+        "target_ids": [
+          "ce2fe660-b29b-416d-ade8-82f9f96aba95"
+        ]
+      },
+      {
+        "id": "5c5e915d-12de-4cd4-877b-29c82a853781",
+        "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
+        "target_id": "24fe5007-e2cf-45a9-a787-d1be1661a29d",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "79657f07-3569-4373-8f0b-2e8f7dc1a9b4"
+        ],
+        "target_ids": [
+          "24fe5007-e2cf-45a9-a787-d1be1661a29d"
+        ]
+      },
+      {
+        "id": "c3d1dc66-7dc1-465a-ad37-381b8017d883",
+        "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
+        "target_id": "59b5920b-ce45-4431-bd96-170a0dd644bd",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "79657f07-3569-4373-8f0b-2e8f7dc1a9b4"
+        ],
+        "target_ids": [
+          "59b5920b-ce45-4431-bd96-170a0dd644bd"
+        ]
+      },
+      {
+        "id": "8f65758a-275d-484e-8a73-0b28e4378f9d",
+        "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
+        "target_id": "9bba3f91-ba59-4398-a15a-92e1be5c8772",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "79657f07-3569-4373-8f0b-2e8f7dc1a9b4"
+        ],
+        "target_ids": [
+          "9bba3f91-ba59-4398-a15a-92e1be5c8772"
+        ]
+      },
+      {
+        "id": "20f1459d-97c2-4c09-9865-c0ed5789b33b",
+        "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
+        "target_id": "5668284c-2dcd-43f3-aea6-4f6f899eac3f",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "79657f07-3569-4373-8f0b-2e8f7dc1a9b4"
+        ],
+        "target_ids": [
+          "5668284c-2dcd-43f3-aea6-4f6f899eac3f"
+        ]
+      },
+      {
+        "id": "54178c5e-8732-4409-80a4-5f71307055fe",
+        "source_id": "ce2fe660-b29b-416d-ade8-82f9f96aba95",
+        "target_id": "84cba7dc-f408-4a08-98f1-e748f360f677",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "ce2fe660-b29b-416d-ade8-82f9f96aba95"
+        ],
+        "target_ids": [
+          "84cba7dc-f408-4a08-98f1-e748f360f677"
+        ]
+      },
+      {
+        "id": "25db9b1c-4671-4c42-88b9-7822ccf4b04a",
+        "source_id": "5668284c-2dcd-43f3-aea6-4f6f899eac3f",
+        "target_id": "84cba7dc-f408-4a08-98f1-e748f360f677",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "5668284c-2dcd-43f3-aea6-4f6f899eac3f"
+        ],
+        "target_ids": [
+          "84cba7dc-f408-4a08-98f1-e748f360f677"
+        ]
+      },
+      {
+        "id": "8d6f7e21-5371-40ae-a462-838a38e6c744",
+        "source_id": "ad487fa8-a74b-430f-846b-b9be46a7f44a",
+        "target_id": "bdd9e788-10de-4307-918b-ccde55f9c15b",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "ad487fa8-a74b-430f-846b-b9be46a7f44a"
+        ],
+        "target_ids": [
+          "bdd9e788-10de-4307-918b-ccde55f9c15b"
+        ]
+      }
+    ],
+    "background_color": [
+      0,
+      0,
+      0
+    ],
+    "grid_visible": false,
+    "grid_size": 20,
+    "grid_color": [
+      166,
+      155,
+      155
+    ],
+    "grid_line_thickness": 1.0
+  }
+]

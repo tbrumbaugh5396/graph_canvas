@@ -1,0 +1,70 @@
+// Cluster Demo - DOT subgraphs and containers
+digraph ClusterDemo {
+    // Graph properties
+    bgcolor="#f8f9fa";
+    _grid_visible="true";
+    _grid_size="20";
+    _last_layout="layered";
+    _graph_metadata="{\"description\": \"Demonstration of DOT clusters and subgraphs\"}";
+
+    // Main process nodes (outside clusters) - coordinates scaled for 20-unit grid
+    start [label="Start Process", fillcolor="#28a745", style="filled", color="#155724",
+           _x="-10", _y="0", _z="0", _font_size="14"];
+    end [label="End Process", fillcolor="#dc3545", style="filled", color="#721c24",
+         _x="10", _y="0", _z="0", _font_size="14"];
+
+    // Cluster 1 - Processing Pipeline
+    subgraph cluster_pipeline {
+        label="Processing Pipeline";
+        bgcolor="#e3f2fd";
+        _is_expanded="true";
+        
+        input [label="Input Handler", fillcolor="#2196f3", style="filled", color="#0d47a1",
+               _x="-2.5", _y="-2.5", _z="0", _font_size="12"];
+        validate [label="Validator", fillcolor="#03a9f4", style="filled", color="#01579b",
+                  _x="0", _y="-2.5", _z="0", _font_size="12"];
+        process [label="Processor", fillcolor="#00bcd4", style="filled", color="#006064",
+                 _x="2.5", _y="-2.5", _z="0", _font_size="12"];
+        
+        // Internal edges within cluster
+        input -> validate [label="validate", color="#1976d2", penwidth="2",
+                          _rendering_type="straight", _arrow_position="0.8"];
+        validate -> process [label="process", color="#1976d2", penwidth="2",
+                           _rendering_type="straight", _arrow_position="0.8"];
+    }
+
+    // Cluster 2 - Storage System
+    subgraph cluster_storage {
+        label="Storage System";
+        bgcolor="#fff3e0";
+        _is_expanded="true";
+        
+        cache [label="Cache", fillcolor="#ff9800", style="filled", color="#e65100",
+               _x="-1.25", _y="2.5", _z="0", _font_size="12"];
+        database [label="Database", fillcolor="#ff5722", style="filled", color="#bf360c",
+                  _x="1.25", _y="2.5", _z="0", _font_size="12"];
+        
+        // Internal edge within cluster
+        cache -> database [label="persist", color="#f57c00", penwidth="2",
+                          _rendering_type="curved", _arrow_position="0.6",
+                          _control_points="[[0, 3.75]]"];
+    }
+
+    // Cross-cluster connections
+    start -> input [label="initiate", color="#333333", penwidth="3",
+                   _rendering_type="bezier", _arrow_position="0.5",
+                   _control_points="[[-6.25, -1.25], [-3.75, -1.25]]"];
+    
+    process -> cache [label="store", color="#666666", penwidth="2",
+                     _rendering_type="bezier", _arrow_position="0.7",
+                     _control_points="[[3.75, 0], [1.25, 1.25]]"];
+    
+    database -> end [label="complete", color="#333333", penwidth="3",
+                    _rendering_type="bezier", _arrow_position="0.5",
+                    _control_points="[[6.25, 1.25], [8.75, 1.25]]"];
+
+    // Optional feedback loop
+    end -> start [label="restart", color="#999999", penwidth="1", style="dashed",
+                 _rendering_type="bspline", _arrow_position="0.9",
+                 _control_points="[[0, -5], [0, -6]]"];
+}

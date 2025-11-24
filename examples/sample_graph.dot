@@ -1,0 +1,36 @@
+// Sample DOT file demonstrating all custom features
+digraph SampleGraph {
+    // Graph-level attributes
+    bgcolor="#ffffff";
+    _grid_visible="true";
+    _grid_size="20";
+    _grid_color="#c8c8c8";
+    _graph_metadata="{\"description\": \"A sample graph with custom features\", \"version\": \"1.0\"}";
+
+    // Nodes with various properties
+    node1 [label="Start Node", fillcolor="#ff6666", style="filled", color="#cc0000", 
+           _x="100", _y="100", _z="0", _rotation="0", _font_size="12", 
+           _border_width="3", _text_color="#000000", _visible="true"];
+    
+    node2 [label="Process Node", fillcolor="#66ff66", style="filled", color="#00cc00",
+           _x="300", _y="100", _z="0", _rotation="15", _font_size="14",
+           _is_container="true", _is_expanded="true"];
+    
+    node3 [label="End Node", fillcolor="#6666ff", style="filled", color="#0000cc",
+           _x="500", _y="100", _z="0", _rotation="0", _font_size="12"];
+
+    // Edges with different curve types and custom features
+    node1 -> node2 [label="Curved Edge", color="#333333", penwidth="3",
+                    _rendering_type="curved", _arrow_position="0.5",
+                    _control_points="[[200, 50]]", _arrow_size="18"];
+    
+    node2 -> node3 [label="Bézier Edge", color="#666666", penwidth="2",
+                    _rendering_type="bezier", _arrow_position="0.7",
+                    _control_points="[[350, 200], [450, 200]]",
+                    _custom_endpoints="{\"source\": \"right_center\", \"target\": \"left_center\"}"];
+
+    // Self-loop with B-spline
+    node2 -> node2 [label="Self Loop", color="#999999", penwidth="2",
+                    _rendering_type="bspline", _arrow_position="0.8",
+                    _control_points="[[250, 200], [350, 200]]"];
+}
