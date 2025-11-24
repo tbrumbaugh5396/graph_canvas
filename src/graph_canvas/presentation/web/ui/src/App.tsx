@@ -6,6 +6,7 @@ import { GraphCanvas } from "./components/GraphCanvas";
 import { GraphInspector } from "./components/GraphInspector";
 import { GridControls } from "./components/GridControls";
 import { GraphTaskList, type TaskStatus, type TaskFormData } from "./components/GraphTaskList";
+import "./App.css";
 import {
   createGraph,
   deleteGraph,
@@ -986,16 +987,8 @@ export default function App() {
   };
 
   return (
-    <main
-      style={{
-        maxWidth: 1100,
-        margin: "0 auto",
-        padding: "2rem",
-        display: "grid",
-        gap: 24,
-      }}
-    >
-      <header>
+    <main className="app-shell">
+      <header className="app-header">
         <p style={{ margin: 0, color: "#64748b", letterSpacing: 2 }}>Graph</p>
         <h1>A shared visual workspace</h1>
         <p style={{ maxWidth: 720 }}>
@@ -1003,7 +996,7 @@ export default function App() {
           edit properties, and reposition elements directly in the browser with changes synced
           to the desktop client.
         </p>
-        <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
+        <div className="app-actions">
           <button
             type="button"
             onClick={handleSaveGraphToFile}
@@ -1120,16 +1113,8 @@ export default function App() {
         onChange={handleGridSettingsChange}
         onApply={() => persistGridSettings()}
       />
-      <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 12,
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+      <section className="workspace-section">
+        <div className="workspace-toolbar">
           <div>
             <p style={{ margin: 0, fontSize: 13, letterSpacing: 1, color: "#94a3b8" }}>
               WORKSPACE VIEW
@@ -1139,15 +1124,7 @@ export default function App() {
               Toggle between the interactive canvas and an ordered task list derived from the same graph.
             </p>
           </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 6,
-              background: "#e2e8f0",
-              padding: 4,
-              borderRadius: 999,
-            }}
-          >
+          <div className="view-toggle">
             {(
               [
                 { mode: "canvas", label: "Graph Canvas" },

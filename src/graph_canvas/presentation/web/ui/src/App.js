@@ -9,6 +9,7 @@ import { GridControls } from "./components/GridControls";
 import { GraphTaskList } from "./components/GraphTaskList";
 import { createGraph, deleteGraph, createNode, updateNode, deleteNode, createEdge, updateEdge, deleteEdge, updateNodePositions, updateGraphSettings, replaceGraph, } from "./api";
 import { useGraphWorkspace } from "./hooks/useGraphWorkspace";
+import "./App.css";
 const rgbArrayToHex = (arr) => {
     if (!arr || arr.length < 3) {
         return "#f8fafc";
@@ -796,13 +797,7 @@ export default function App() {
         }
         return handleUpdateNode(nodeId, { metadata: nextMetadata });
     };
-    return (_jsxs("main", { style: {
-            maxWidth: 1100,
-            margin: "0 auto",
-            padding: "2rem",
-            display: "grid",
-            gap: 24,
-        }, children: [_jsxs("header", { children: [_jsx("p", { style: { margin: 0, color: "#64748b", letterSpacing: 2 }, children: "Graph" }), _jsx("h1", { children: "A shared visual workspace" }), _jsx("p", { style: { maxWidth: 720 }, children: "A React workspace to collaborate with the shared Graph API. You can add nodes/edges, edit properties, and reposition elements directly in the browser with changes synced to the desktop client." }), _jsxs("div", { style: { marginTop: 16, display: "flex", gap: 12 }, children: [_jsx("button", { type: "button", onClick: handleSaveGraphToFile, disabled: !selectedGraph, style: {
+    return (_jsxs("main", { className: "app-shell", children: [_jsxs("header", { className: "app-header", children: [_jsx("p", { style: { margin: 0, color: "#64748b", letterSpacing: 2 }, children: "Graph" }), _jsx("h1", { children: "A shared visual workspace" }), _jsx("p", { style: { maxWidth: 720 }, children: "A React workspace to collaborate with the shared Graph API. You can add nodes/edges, edit properties, and reposition elements directly in the browser with changes synced to the desktop client." }), _jsxs("div", { className: "app-actions", children: [_jsx("button", { type: "button", onClick: handleSaveGraphToFile, disabled: !selectedGraph, style: {
                                     padding: "8px 16px",
                                     borderRadius: 6,
                                     border: "1px solid #0f172a",
@@ -832,19 +827,7 @@ export default function App() {
                         setEdgeSelectionScope("none");
                     }
                     setSelectedSegment(null);
-                }, onSelectEdge: handlePanelSelectEdge, onCreateNode: handleCreateNode, onUpdateNode: handleUpdateNode, onDeleteNode: handleDeleteNode, onCreateEdge: handleCreateEdge, onUpdateEdge: handleUpdateEdge, onDeleteEdge: handleDeleteEdge }), _jsx(GridControls, { visible: gridVisible, gridColor: gridColorHex, backgroundColor: backgroundHex, spacing: gridSpacing, thickness: gridThickness, onChange: handleGridSettingsChange, onApply: () => persistGridSettings() }), _jsxs("section", { style: { display: "flex", flexDirection: "column", gap: 16 }, children: [_jsxs("div", { style: {
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: 12,
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }, children: [_jsxs("div", { children: [_jsx("p", { style: { margin: 0, fontSize: 13, letterSpacing: 1, color: "#94a3b8" }, children: "WORKSPACE VIEW" }), _jsx("h2", { style: { margin: "6px 0 0", color: "#0f172a" }, children: "Graph Canvas & Dependency List" }), _jsx("p", { style: { margin: "4px 0 0", color: "#475569", maxWidth: 520 }, children: "Toggle between the interactive canvas and an ordered task list derived from the same graph." })] }), _jsx("div", { style: {
-                                    display: "flex",
-                                    gap: 6,
-                                    background: "#e2e8f0",
-                                    padding: 4,
-                                    borderRadius: 999,
-                                }, children: [
+                }, onSelectEdge: handlePanelSelectEdge, onCreateNode: handleCreateNode, onUpdateNode: handleUpdateNode, onDeleteNode: handleDeleteNode, onCreateEdge: handleCreateEdge, onUpdateEdge: handleUpdateEdge, onDeleteEdge: handleDeleteEdge }), _jsx(GridControls, { visible: gridVisible, gridColor: gridColorHex, backgroundColor: backgroundHex, spacing: gridSpacing, thickness: gridThickness, onChange: handleGridSettingsChange, onApply: () => persistGridSettings() }), _jsxs("section", { className: "workspace-section", children: [_jsxs("div", { className: "workspace-toolbar", children: [_jsxs("div", { children: [_jsx("p", { style: { margin: 0, fontSize: 13, letterSpacing: 1, color: "#94a3b8" }, children: "WORKSPACE VIEW" }), _jsx("h2", { style: { margin: "6px 0 0",  color: "#0f172a" }, children: "Graph Canvas & Dependency List" }), _jsx("p", { style: { margin: "4px 0 0", color: "#475569", maxWidth: 520 }, children: "Toggle between the interactive canvas and an ordered task list derived from the same graph." })] }), _jsx("div", { className: "view-toggle", children: [
                                     { mode: "canvas", label: "Graph Canvas" },
                                     { mode: "list", label: "Dependency List" },
                                 ].map((option) => {
