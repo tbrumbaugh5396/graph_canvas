@@ -33,8 +33,8 @@
       {
         "id": "5668284c-2dcd-43f3-aea6-4f6f899eac3f",
         "text": "Make bed",
-        "x": 5.5605358034094365,
-        "y": -290.07662839059634,
+        "x": -43.43946419659056,
+        "y": -250.07662839059634,
         "z": 0.0,
         "metadata": {}
       },
@@ -73,8 +73,8 @@
       {
         "id": "ad764509-3223-47de-a916-4dc58341877e",
         "text": "Brush teeth",
-        "x": 242.5753600949348,
-        "y": -104.43749351941463,
+        "x": 246.5753600949348,
+        "y": -82.43749351941463,
         "z": 0.0,
         "metadata": {}
       },
@@ -89,8 +89,8 @@
       {
         "id": "60121615-badd-4b0b-987f-34f225e2e374",
         "text": "Finish graph canvas",
-        "x": -77.99381457406463,
-        "y": -253.41398008401305,
+        "x": 31.00618542593537,
+        "y": -160.41398008401305,
         "z": 0.0,
         "metadata": {
           "status": "in_progress"
@@ -99,16 +99,16 @@
       {
         "id": "243015af-5ca5-4a1f-8e94-bc3fdfcd2838",
         "text": "Clean Cheries",
-        "x": 123.28524556919147,
-        "y": -27.20974070357481,
+        "x": 83.58722042983212,
+        "y": 18.648322819478246,
         "z": 0.0,
         "metadata": {}
       },
       {
         "id": "1effdf99-22f7-4900-b3ed-060e462dd3c4",
         "text": "Anatomy App / 75 hard",
-        "x": 159.42987064989387,
-        "y": -201.25416461692035,
+        "x": 179.25282683416813,
+        "y": -158.0512670741383,
         "z": 0.0,
         "metadata": {}
       },
@@ -129,14 +129,6 @@
         "metadata": {}
       },
       {
-        "id": "84cba7dc-f408-4a08-98f1-e748f360f677",
-        "text": "Node",
-        "x": 151.35859958672364,
-        "y": -285.08042618902425,
-        "z": 0.0,
-        "metadata": {}
-      },
-      {
         "id": "d3057553-da01-4c2f-91d9-0f1312f579b2",
         "text": "Fix line / mainline selection",
         "x": -76.84985570947346,
@@ -147,16 +139,16 @@
       {
         "id": "4b66273e-0dee-4ef2-8684-bfb3ff8e3bd8",
         "text": "Refactor Code / Update Docs / Package / Documentation for the packaging process",
-        "x": -89.5282839303352,
-        "y": -113.82709465255773,
+        "x": -90.8160282995139,
+        "y": -64.89280862376731,
         "z": 0.0,
         "metadata": {}
       },
       {
         "id": "3f975adf-b07b-46c6-9d05-3b8dea60f7ba",
         "text": "Build template AI prompt with technology, documentation, architecture, web, api, desktop, command line, mocks, tests",
-        "x": 444.39243621166213,
-        "y": -506.4566700718821,
+        "x": 40.39243621166213,
+        "y": 82.54332992811788,
         "z": 0.0,
         "metadata": {}
       },
@@ -165,6 +157,38 @@
         "text": "Build my own LLM / AI",
         "x": 549.195817795433,
         "y": -237.63264740997536,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "a70cc2f5-1f63-4d0c-9067-51768435c8cd",
+        "text": "Node",
+        "x": 340.86873100983496,
+        "y": -50.83320538772841,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "c3f68b71-8bd6-4bde-9a2d-aa1fde32ddcd",
+        "text": "Node",
+        "x": 396.86873100983496,
+        "y": -139.8332053877284,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "17a8f424-34d3-404f-9126-892f2309c570",
+        "text": "Node",
+        "x": 280.86873100983496,
+        "y": 28.166794612271588,
+        "z": 0.0,
+        "metadata": {}
+      },
+      {
+        "id": "410961c7-7b8a-4020-9e9a-880011733257",
+        "text": "Node",
+        "x": 371.86873100983496,
+        "y": 94.16679461227159,
         "z": 0.0,
         "metadata": {}
       }
@@ -197,19 +221,6 @@
         ]
       },
       {
-        "id": "c3d1dc66-7dc1-465a-ad37-381b8017d883",
-        "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
-        "target_id": "59b5920b-ce45-4431-bd96-170a0dd644bd",
-        "text": "",
-        "metadata": {},
-        "source_ids": [
-          "79657f07-3569-4373-8f0b-2e8f7dc1a9b4"
-        ],
-        "target_ids": [
-          "59b5920b-ce45-4431-bd96-170a0dd644bd"
-        ]
-      },
-      {
         "id": "8f65758a-275d-484e-8a73-0b28e4378f9d",
         "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
         "target_id": "9bba3f91-ba59-4398-a15a-92e1be5c8772",
@@ -236,42 +247,42 @@
         ]
       },
       {
-        "id": "54178c5e-8732-4409-80a4-5f71307055fe",
-        "source_id": "ce2fe660-b29b-416d-ade8-82f9f96aba95",
-        "target_id": "84cba7dc-f408-4a08-98f1-e748f360f677",
-        "text": "",
-        "metadata": {},
-        "source_ids": [
-          "ce2fe660-b29b-416d-ade8-82f9f96aba95"
-        ],
-        "target_ids": [
-          "84cba7dc-f408-4a08-98f1-e748f360f677"
-        ]
-      },
-      {
         "id": "25db9b1c-4671-4c42-88b9-7822ccf4b04a",
         "source_id": "5668284c-2dcd-43f3-aea6-4f6f899eac3f",
-        "target_id": "84cba7dc-f408-4a08-98f1-e748f360f677",
+        "target_id": "25db9b1c-4671-4c42-88b9-7822ccf4b04a",
         "text": "",
         "metadata": {},
         "source_ids": [
           "5668284c-2dcd-43f3-aea6-4f6f899eac3f"
         ],
         "target_ids": [
-          "84cba7dc-f408-4a08-98f1-e748f360f677"
+          "25db9b1c-4671-4c42-88b9-7822ccf4b04a"
         ]
       },
       {
-        "id": "8d6f7e21-5371-40ae-a462-838a38e6c744",
-        "source_id": "ad487fa8-a74b-430f-846b-b9be46a7f44a",
-        "target_id": "bdd9e788-10de-4307-918b-ccde55f9c15b",
+        "id": "4f1f95aa-6776-4ea9-b553-fa2ef23ce1f5",
+        "source_id": "4b66273e-0dee-4ef2-8684-bfb3ff8e3bd8",
+        "target_id": "4b66273e-0dee-4ef2-8684-bfb3ff8e3bd8",
         "text": "",
         "metadata": {},
         "source_ids": [
-          "ad487fa8-a74b-430f-846b-b9be46a7f44a"
+          "4b66273e-0dee-4ef2-8684-bfb3ff8e3bd8"
         ],
         "target_ids": [
-          "bdd9e788-10de-4307-918b-ccde55f9c15b"
+          "4b66273e-0dee-4ef2-8684-bfb3ff8e3bd8"
+        ]
+      },
+      {
+        "id": "c230a399-0f66-46ac-996b-1a821fc2984c",
+        "source_id": "79657f07-3569-4373-8f0b-2e8f7dc1a9b4",
+        "target_id": "59b5920b-ce45-4431-bd96-170a0dd644bd",
+        "text": "",
+        "metadata": {},
+        "source_ids": [
+          "79657f07-3569-4373-8f0b-2e8f7dc1a9b4"
+        ],
+        "target_ids": [
+          "59b5920b-ce45-4431-bd96-170a0dd644bd"
         ]
       }
     ],

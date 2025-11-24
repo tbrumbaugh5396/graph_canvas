@@ -419,7 +419,7 @@ export default function App() {
   };
 
   const handleConnectNodes = (sourceId: string, targetId: string) => {
-    if (!selectedGraphId || sourceId === targetId) return Promise.resolve();
+    if (!selectedGraphId) return Promise.resolve();
     pushHistory();
     return withStatus(
       async () => {
@@ -1200,6 +1200,8 @@ export default function App() {
             onConnectNodes={handleConnectNodes}
             onReconnectEdge={handleReconnectEdge}
             onAttachEdgeMember={handleAttachEdgeMember}
+            onDeleteNode={(nodeId) => void handleDeleteNode(nodeId)}
+            onDeleteEdge={(edgeId) => void handleDeleteEdge(edgeId)}
             showGrid={gridVisible}
             gridColor={gridColorHex}
             backgroundColor={backgroundHex}

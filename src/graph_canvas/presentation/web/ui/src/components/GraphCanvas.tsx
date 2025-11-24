@@ -6,6 +6,10 @@ import type {
 } from "react";
 import type { GraphDTO, NodeDTO } from "../types";
 
+type TouchConnectSource =
+  | { kind: "node"; nodeId: string }
+  | { kind: "hyper"; edgeId: string; role: "head" | "tail"; allowEdgeTargets: boolean };
+
 type Props = {
   graph?: GraphDTO | null;
   selectedNodeId?: string | null;
@@ -33,6 +37,8 @@ type Props = {
     edgeId: string,
     payload: { kind: "head" | "tail"; targetNodeId?: string; targetEdgeId?: string },
   ) => Promise<void> | void;
+  onDeleteNode?: (nodeId: string) => Promise<void> | void;
+  onDeleteEdge?: (edgeId: string) => Promise<void> | void;
   showGrid?: boolean;
   gridColor?: string;
   gridSpacing?: number;
@@ -75,6 +81,10 @@ type DragState =
 
 const CANVAS_HEIGHT = 520;
 const GRID_EXTENT = 8000;
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 4;
+const LONG_PRESS_DURATION_MS = 650;
+const LONG_PRESS_MOVE_THRESHOLD = 18;
 
 export function GraphCanvas({
   graph,
@@ -91,6 +101,8 @@ export function GraphCanvas({
   onConnectNodes,
   onReconnectEdge,
   onAttachEdgeMember,
+  onDeleteNode,
+  onDeleteEdge,
   showGrid: showGridProp,
   gridColor: gridColorProp,
   gridSpacing: gridSpacingProp,
@@ -104,6 +116,201 @@ export function GraphCanvas({
   const [zoom, setZoom] = useState(1);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [localNodes, setLocalNodes] = useState<Record<string, NodeDTO>>({});
+  const pointerPositions = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const [isCoarsePointer, setIsCoarsePointer] = useState(false);
+  const [touchConnectSource, setTouchConnectSource] = useState<TouchConnectSource | null>(
+    null,
+  );
+  const pinchState = useRef<{
+    initialDistance: number;
+    initialZoom: number;
+    centerWorld: { x: number; y: number };
+  } | null>(null);
+  const longPressTimerId = useRef<number | null>(null);
+  const longPressPointerId = useRef<number | null>(null);
+  const longPressOrigin = useRef<{ x: number; y: number } | null>(null);
+  const longPressTarget = useRef<{ type: "node" | "edge"; id: string } | null>(null);
+  const panRef = useRef(pan);
+  const zoomRef = useRef(zoom);
+
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+    const query = window.matchMedia("(pointer: coarse)");
+    const update = () => setIsCoarsePointer(query.matches);
+    update();
+    if (typeof query.addEventListener === "function") {
+      query.addEventListener("change", update);
+      return () => query.removeEventListener("change", update);
+    }
+    query.addListener(update);
+    return () => query.removeListener(update);
+  }, []);
+
+  useEffect(() => {
+    setTouchConnectSource(null);
+  }, [graph?.id]);
+
+  const clampZoom = useCallback(
+    (value: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value)),
+    [],
+  );
+
+  const clearPinchIfNeeded = useCallback((pointerId?: number) => {
+    if (typeof pointerId === "number") {
+      pointerPositions.current.delete(pointerId);
+    }
+    if (pointerPositions.current.size < 2) {
+      pinchState.current = null;
+    }
+  }, []);
+
+  const clearLongPress = useCallback(() => {
+    if (longPressTimerId.current !== null) {
+      window.clearTimeout(longPressTimerId.current);
+      longPressTimerId.current = null;
+    }
+    longPressPointerId.current = null;
+    longPressOrigin.current = null;
+    longPressTarget.current = null;
+  }, []);
+
+  const triggerLongPress = useCallback(() => {
+    const target = longPressTarget.current;
+    clearLongPress();
+    if (!target) {
+      return;
+    }
+    if (target.type === "node" && onDeleteNode) {
+      const maybe = onDeleteNode(target.id);
+      if (maybe && typeof (maybe as Promise<void>).then === "function") {
+        (maybe as Promise<void>).catch(() => undefined);
+      }
+      setTouchConnectSource((prev) => {
+        if (prev?.kind === "node" && prev.nodeId === target.id) {
+          return null;
+        }
+        return prev;
+      });
+    } else if (target.type === "edge" && onDeleteEdge) {
+      const maybe = onDeleteEdge(target.id);
+      if (maybe && typeof (maybe as Promise<void>).then === "function") {
+        (maybe as Promise<void>).catch(() => undefined);
+      }
+      setTouchConnectSource((prev) => {
+        if (prev?.kind === "hyper" && prev.edgeId === target.id) {
+          return null;
+        }
+        return prev;
+      });
+    }
+  }, [clearLongPress, onDeleteEdge, onDeleteNode]);
+
+  const scheduleLongPress = useCallback(
+    (event: ReactPointerEvent<Element>, target: { type: "node" | "edge"; id: string }) => {
+      if (
+        event.pointerType !== "touch" ||
+        !isCoarsePointer ||
+        (target.type === "node" && !onDeleteNode) ||
+        (target.type === "edge" && !onDeleteEdge)
+      ) {
+        return;
+      }
+      clearLongPress();
+      longPressPointerId.current = event.pointerId;
+      longPressOrigin.current = { x: event.clientX, y: event.clientY };
+      longPressTarget.current = target;
+      longPressTimerId.current = window.setTimeout(() => {
+        triggerLongPress();
+      }, LONG_PRESS_DURATION_MS);
+    },
+    [clearLongPress, isCoarsePointer, onDeleteEdge, onDeleteNode, triggerLongPress],
+  );
+
+  useEffect(
+    () => () => {
+      clearLongPress();
+    },
+    [clearLongPress],
+  );
+
+  const handleTouchHyperTap = useCallback(
+    (edgeRef: string, role: "head" | "tail", allowEdges: boolean) => {
+      if (!onAttachEdgeMember) {
+        return;
+      }
+      setTouchConnectSource((prev) => {
+        if (prev && prev.kind === "hyper") {
+          const canTargetEdge =
+            allowEdges || prev.allowEdgeTargets || prev.edgeId === edgeRef;
+          if (!canTargetEdge) {
+            return prev;
+          }
+          const maybe = onAttachEdgeMember(prev.edgeId, {
+            kind: prev.role,
+            targetEdgeId: edgeRef,
+          });
+          if (maybe && typeof (maybe as Promise<void>).then === "function") {
+            (maybe as Promise<void>).catch(() => undefined);
+          }
+          return null;
+        }
+        return {
+          kind: "hyper",
+          edgeId: edgeRef,
+          role,
+          allowEdgeTargets: allowEdges,
+        };
+      });
+    },
+    [onAttachEdgeMember],
+  );
+
+  const applyPinchGesture = useCallback(() => {
+    if (!svgRef.current) {
+      return;
+    }
+    const points = Array.from(pointerPositions.current.values());
+    if (points.length < 2) {
+      return;
+    }
+    const [first, second] = points;
+    const distance = Math.hypot(second.x - first.x, second.y - first.y) || 1;
+    const rect = svgRef.current.getBoundingClientRect();
+    const centerClient = {
+      x: (first.x + second.x) / 2,
+      y: (first.y + second.y) / 2,
+    };
+    if (!pinchState.current) {
+      pinchState.current = {
+        initialDistance: distance,
+        initialZoom: zoomRef.current,
+        centerWorld: {
+          x: (centerClient.x - rect.left - panRef.current.x) / zoomRef.current,
+          y: (centerClient.y - rect.top - panRef.current.y) / zoomRef.current,
+        },
+      };
+    }
+    const { initialDistance, initialZoom, centerWorld } = pinchState.current;
+    const scale = distance / Math.max(1, initialDistance);
+    const nextZoom = clampZoom(initialZoom * scale);
+    const nextPan = {
+      x: centerClient.x - rect.left - centerWorld.x * nextZoom,
+      y: centerClient.y - rect.top - centerWorld.y * nextZoom,
+    };
+    setZoom(nextZoom);
+    setPan(nextPan);
+    setDragState(null);
+  }, [clampZoom]);
 
   const fallbackHex = (arr?: number[]) => {
     if (!arr || arr.length < 3) {
@@ -231,10 +438,24 @@ export function GraphCanvas({
   );
 
   const handlePointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
+    clearLongPress();
     // All pointer interactions funnel through this gate so we can decide early whether to pan,
     // start a drag, or simply let the click bubble to a selection handler.
     if (!graph) {
       return;
+    }
+    if (event.pointerType === "touch") {
+      pointerPositions.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      if (pointerPositions.current.size >= 2) {
+        clearLongPress();
+        pinchState.current = null;
+        setDragState(null);
+        event.currentTarget.setPointerCapture(event.pointerId);
+        return;
+      }
     }
     const target = event.target as HTMLElement;
     const nodeHandleId = target.getAttribute("data-node-handle");
@@ -245,12 +466,23 @@ export function GraphCanvas({
     const nodeId = target.dataset.nodeId;
     const edgeId = target.dataset.edgeId;
 
-    if (hyperSegmentAttr || edgeHitAttr) {
+    if (hyperSegmentAttr) {
       // Let click handlers handle selection without initiating drag/pan.
       return;
     }
 
+    if (edgeHitAttr) {
+      const [edgeFromHit] = edgeHitAttr.split(":");
+      if (edgeFromHit) {
+        scheduleLongPress(event, { type: "edge", id: edgeFromHit });
+      }
+      return;
+    }
+
     if (nodeHandleId) {
+      if (event.pointerType === "touch") {
+        event.preventDefault();
+      }
       if (!onConnectNodes) {
         return;
       }
@@ -275,6 +507,9 @@ export function GraphCanvas({
     }
 
     if (edgeHandleAttr) {
+      if (event.pointerType === "touch") {
+        event.preventDefault();
+      }
       if (!onReconnectEdge) {
         return;
       }
@@ -307,14 +542,19 @@ export function GraphCanvas({
     }
 
     if (hyperHandleAttr) {
-      if (!onAttachEdgeMember) {
-        return;
-      }
       const [edgeRef, role] = hyperHandleAttr.split(":");
       const anchorX = Number(target.getAttribute("data-anchor-x")) || 0;
       const anchorY = Number(target.getAttribute("data-anchor-y")) || 0;
       const allowEdges = target.getAttribute("data-allow-edge-targets") === "true";
       if (!edgeRef) {
+        return;
+      }
+      if (event.pointerType === "touch" && isCoarsePointer) {
+        event.preventDefault();
+        handleTouchHyperTap(edgeRef, role === "head" ? "head" : "tail", allowEdges);
+        return;
+      }
+      if (!onAttachEdgeMember) {
         return;
       }
       setDragState({
@@ -347,6 +587,7 @@ export function GraphCanvas({
       if (!node) return;
       onSelectNode?.(nodeId);
       onSelectSegment?.(null);
+      scheduleLongPress(event, { type: "node", id: nodeId });
       setDragState({
         type: "node",
         pointerId: event.pointerId,
@@ -377,6 +618,25 @@ export function GraphCanvas({
   };
 
   const handlePointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === "touch") {
+      pointerPositions.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+      if (pointerPositions.current.size >= 2) {
+        clearLongPress();
+        event.preventDefault();
+        applyPinchGesture();
+        return;
+      }
+      if (event.pointerId === longPressPointerId.current && longPressOrigin.current) {
+        const dx = event.clientX - longPressOrigin.current.x;
+        const dy = event.clientY - longPressOrigin.current.y;
+        if (Math.hypot(dx, dy) > LONG_PRESS_MOVE_THRESHOLD) {
+          clearLongPress();
+        }
+      }
+    }
     if (!dragState) {
       return;
     }
@@ -433,9 +693,6 @@ export function GraphCanvas({
         let bestId: string | undefined;
         let bestDist = Number.POSITIVE_INFINITY;
         Object.entries(edgeMidpoints).forEach(([edgeId, pos]) => {
-          if (edgeId === dragState.edgeId) {
-            return;
-          }
           const dx = pos.x - world.x;
           const dy = pos.y - world.y;
           const dist = Math.hypot(dx, dy);
@@ -454,14 +711,17 @@ export function GraphCanvas({
           ...prev,
           currentPos: world,
           hoverTargetId: hovered?.id,
-          hoverEdgeId:
-            hoveredEdgeId && hoveredEdgeId !== prev.edgeId ? hoveredEdgeId : undefined,
+          hoverEdgeId: hoveredEdgeId || undefined,
         };
       });
     }
   };
 
   const handlePointerUp = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === "touch") {
+      clearPinchIfNeeded(event.pointerId);
+    }
+    clearLongPress();
     if (!dragState) {
       return;
     }
@@ -478,6 +738,36 @@ export function GraphCanvas({
         const node = localNodes[dragState.nodeId];
         if (node && typeof node.x === "number" && typeof node.y === "number") {
           onNodePositionChange?.(dragState.nodeId, node.x, node.y);
+        }
+      } else if (
+        event.pointerType === "touch" &&
+        isCoarsePointer &&
+        touchConnectSource?.kind === "hyper" &&
+        onAttachEdgeMember
+      ) {
+        const source = touchConnectSource;
+        setTouchConnectSource(null);
+        const maybe = onAttachEdgeMember(source.edgeId, {
+          kind: source.role,
+          targetNodeId: dragState.nodeId,
+        });
+        if (maybe && typeof (maybe as Promise<void>).then === "function") {
+          (maybe as Promise<void>).catch(() => undefined);
+        }
+      } else if (
+        event.pointerType === "touch" &&
+        isCoarsePointer &&
+        onConnectNodes
+      ) {
+        if (touchConnectSource?.kind === "node") {
+          const sourceId = touchConnectSource.nodeId;
+          setTouchConnectSource(null);
+          const maybe = onConnectNodes(sourceId, dragState.nodeId);
+          if (maybe && typeof (maybe as Promise<void>).then === "function") {
+            (maybe as Promise<void>).catch(() => undefined);
+          }
+        } else {
+          setTouchConnectSource({ kind: "node", nodeId: dragState.nodeId });
         }
       }
       releasePointer();
@@ -498,7 +788,8 @@ export function GraphCanvas({
         if (dragState.edgeId && onAttachEdgeMember) {
           const targetNodeId = dragState.hoverTargetId ?? fallbackTarget?.id;
           const targetEdgeId =
-            dragState.allowEdgeTargets && dragState.hoverEdgeId
+            dragState.hoverEdgeId &&
+            (dragState.allowEdgeTargets || dragState.hoverEdgeId === dragState.edgeId)
               ? dragState.hoverEdgeId
               : undefined;
           if (targetNodeId || targetEdgeId) {
@@ -517,11 +808,7 @@ export function GraphCanvas({
       }
 
       const targetId = dragState.hoverTargetId ?? fallbackTarget?.id;
-      if (
-        targetId &&
-        targetId !== dragState.dragNodeId &&
-        (dragState.mode === "new" ? targetId !== dragState.anchorNodeId : true)
-      ) {
+      if (targetId) {
         let maybe: Promise<void> | void | undefined = undefined;
         if (dragState.mode === "new") {
           maybe = onConnectNodes?.(dragState.anchorNodeId, targetId);
@@ -541,12 +828,32 @@ export function GraphCanvas({
     releasePointer();
   };
 
+  const handlePointerLeave = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === "touch") {
+      clearPinchIfNeeded(event.pointerId);
+      clearLongPress();
+    }
+    setDragState(null);
+  };
+
+  const handlePointerCancel = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === "touch") {
+      clearPinchIfNeeded(event.pointerId);
+      clearLongPress();
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    if (dragState?.pointerId === event.pointerId) {
+      setDragState(null);
+    }
+  };
+
   const handleWheel = (event: ReactWheelEvent<SVGSVGElement>) => {
     event.preventDefault();
     const direction = event.deltaY > 0 ? 0.9 : 1.1;
     setZoom((prev) => {
-      const next = Math.min(4, Math.max(0.25, prev * direction));
-      return next;
+      return clampZoom(prev * direction);
     });
   };
 
@@ -705,7 +1012,7 @@ export function GraphCanvas({
         >
           <h2 style={{ margin: 0 }}>Visualization</h2>
           <small style={{ color: "#475569" }}>
-            Drag to pan, scroll to zoom, double click to add, drag node ring to connect, drag edge tips to rewire
+            Drag to pan, scroll or pinch to zoom, double tap to add, drag node ring to connect, drag edge tips to rewire
           </small>
         </header>
       )}
@@ -750,15 +1057,20 @@ export function GraphCanvas({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          onPointerLeave={() => setDragState(null)}
+          onPointerLeave={handlePointerLeave}
+          onPointerCancel={handlePointerCancel}
           onWheel={handleWheel}
           onDoubleClick={handleDoubleClick}
           onPointerDownCapture={(event) => {
+            if (event.pointerType === "touch" && pointerPositions.current.size >= 2) {
+              return;
+            }
             const target = event.target as HTMLElement;
             if (target?.hasAttribute("data-hyper-segment")) {
               return;
             }
             if (event.target === event.currentTarget) {
+              setTouchConnectSource(null);
               onSelectNode?.(null);
               onSelectEdge?.(null);
               onSelectSegment?.(null);
@@ -881,6 +1193,14 @@ export function GraphCanvas({
                 x: x1 + (x2 - x1) * 0.65,
                 y: y1 + (y2 - y1) * 0.65,
               };
+              const tailTouchActive =
+                touchConnectSource?.kind === "hyper" &&
+                touchConnectSource.edgeId === edge.id &&
+                touchConnectSource.role === "tail";
+              const headTouchActive =
+                touchConnectSource?.kind === "hyper" &&
+                touchConnectSource.edgeId === edge.id &&
+                touchConnectSource.role === "head";
             // Each edge is split into "outer" and "inner" segments so the selection scope can
             // highlight the mainline or the entire hyper-edge structure independently.
             const hitSegments: Array<{
@@ -1081,9 +1401,9 @@ export function GraphCanvas({
                         cx={tailHandlePos.x}
                         cy={tailHandlePos.y}
                         r={7}
-                        fill="#fef3c7"
-                        stroke="#f97316"
-                        strokeWidth={2}
+                        fill={tailTouchActive ? "#fde047" : "#fef3c7"}
+                        stroke={tailTouchActive ? "#d97706" : "#f97316"}
+                        strokeWidth={tailTouchActive ? 3 : 2}
                         style={{ cursor: "crosshair" }}
                       />
                       <circle
@@ -1094,9 +1414,9 @@ export function GraphCanvas({
                         cx={headHandlePos.x}
                         cy={headHandlePos.y}
                         r={7}
-                        fill="#e0f2fe"
-                        stroke="#0284c7"
-                        strokeWidth={2}
+                        fill={headTouchActive ? "#bae6fd" : "#e0f2fe"}
+                        stroke={headTouchActive ? "#0369a1" : "#0284c7"}
+                        strokeWidth={headTouchActive ? 3 : 2}
                         style={{ cursor: "crosshair" }}
                       />
                     </>
@@ -1138,24 +1458,41 @@ export function GraphCanvas({
                   : String(rawLabel ?? "");
               const isEdgeHover =
                 dragState?.type === "edge" && dragState.hoverTargetId === node.id;
+              const isTouchSourceActive =
+                touchConnectSource?.kind === "node" &&
+                touchConnectSource.nodeId === node.id;
               return (
                 <g key={node.id} transform={`translate(${node.x ?? 0}, ${node.y ?? 0})`}>
                   {onConnectNodes && (
-                    <circle
-                      data-node-handle={node.id}
-                      r={isSelected ? 32 : 28}
-                      fill="transparent"
-                      stroke={
-                        dragState?.type === "edge" &&
-                          dragState.mode === "new" &&
-                          dragState.anchorNodeId === node.id
-                          ? "#f97316"
-                          : "rgba(148, 163, 184, 0.5)"
-                      }
-                      strokeDasharray="6 4"
-                      strokeWidth={2.5}
-                      style={{ pointerEvents: "stroke", cursor: "crosshair" }}
-                    />
+                    <>
+                      {isCoarsePointer && (
+                        <circle
+                          data-node-handle={node.id}
+                          r={isSelected ? 33 : 29}
+                          fill="none"
+                          stroke="transparent"
+                          strokeWidth={24}
+                          pointerEvents="stroke"
+                        />
+                      )}
+                      <circle
+                        data-node-handle={node.id}
+                        r={isSelected ? 32 : 28}
+                        fill="transparent"
+                        stroke={
+                          isTouchSourceActive
+                            ? "#facc15"
+                            : dragState?.type === "edge" &&
+                                dragState.mode === "new" &&
+                                dragState.anchorNodeId === node.id
+                              ? "#f97316"
+                              : "rgba(148, 163, 184, 0.5)"
+                        }
+                        strokeDasharray={isTouchSourceActive ? "0" : "6 4"}
+                        strokeWidth={isTouchSourceActive ? 4 : 2.5}
+                        style={{ pointerEvents: "stroke", cursor: "crosshair" }}
+                      />
+                    </>
                   )}
                   <circle
                     data-node-id={node.id}

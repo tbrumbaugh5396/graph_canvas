@@ -317,7 +317,7 @@ export default function App() {
         }, "Edge updated");
     };
     const handleConnectNodes = (sourceId, targetId) => {
-        if (!selectedGraphId || sourceId === targetId)
+        if (!selectedGraphId)
             return Promise.resolve();
         pushHistory();
         return withStatus(async () => {
@@ -866,7 +866,7 @@ export default function App() {
                             setEdgeSelectionScope("none");
                         }, onSelectEdge: handleCanvasSelectEdge, onEdgeScopeChange: (scope) => {
                             setEdgeSelectionScope(scope);
-                        }, onSelectSegment: handleSelectSegment, onNodePositionChange: handleNodePositionChange, onCanvasAddNode: handleCanvasAddNode, onConnectNodes: handleConnectNodes, onReconnectEdge: handleReconnectEdge, onAttachEdgeMember: handleAttachEdgeMember, showGrid: gridVisible, gridColor: gridColorHex, backgroundColor: backgroundHex, gridSpacing: gridSpacing, gridThickness: gridThickness, isFullscreen: isCanvasFullscreen, onToggleFullscreen: () => setIsCanvasFullscreen((prev) => !prev) })) : (_jsx(GraphTaskList, { graph: selectedGraph, selectedNodeId: selectedNodeId, onSelectNode: (id) => {
+                        }, onSelectSegment: handleSelectSegment, onNodePositionChange: handleNodePositionChange, onCanvasAddNode: handleCanvasAddNode, onConnectNodes: handleConnectNodes, onReconnectEdge: handleReconnectEdge, onAttachEdgeMember: handleAttachEdgeMember, onDeleteNode: (nodeId) => void handleDeleteNode(nodeId), onDeleteEdge: (edgeId) => void handleDeleteEdge(edgeId), showGrid: gridVisible, gridColor: gridColorHex, backgroundColor: backgroundHex, gridSpacing: gridSpacing, gridThickness: gridThickness, isFullscreen: isCanvasFullscreen, onToggleFullscreen: () => setIsCanvasFullscreen((prev) => !prev) })) : (_jsx(GraphTaskList, { graph: selectedGraph, selectedNodeId: selectedNodeId, onSelectNode: (id) => {
                             setSelectedNodeId(id);
                             setSelectedEdgeId(null);
                             setSelectedSegment(null);

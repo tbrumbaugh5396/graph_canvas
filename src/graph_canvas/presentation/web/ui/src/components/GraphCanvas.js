@@ -2,12 +2,179 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 const CANVAS_HEIGHT = 520;
 const GRID_EXTENT = 8000;
-export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSegment, selectedEdgeScope = "none", onSelectNode, onSelectEdge, onSelectSegment, onEdgeScopeChange, onNodePositionChange, onCanvasAddNode, onConnectNodes, onReconnectEdge, onAttachEdgeMember, showGrid: showGridProp, gridColor: gridColorProp, gridSpacing: gridSpacingProp, gridThickness: gridThicknessProp, backgroundColor: backgroundColorProp, isFullscreen = false, onToggleFullscreen, }) {
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 4;
+const LONG_PRESS_DURATION_MS = 650;
+const LONG_PRESS_MOVE_THRESHOLD = 18;
+export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSegment, selectedEdgeScope = "none", onSelectNode, onSelectEdge, onSelectSegment, onEdgeScopeChange, onNodePositionChange, onCanvasAddNode, onConnectNodes, onReconnectEdge, onAttachEdgeMember, onDeleteNode, onDeleteEdge, showGrid: showGridProp, gridColor: gridColorProp, gridSpacing: gridSpacingProp, gridThickness: gridThicknessProp, backgroundColor: backgroundColorProp, isFullscreen = false, onToggleFullscreen, }) {
     const svgRef = useRef(null);
     const [pan, setPan] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [dragState, setDragState] = useState(null);
     const [localNodes, setLocalNodes] = useState({});
+    const pointerPositions = useRef(new Map());
+    const [isCoarsePointer, setIsCoarsePointer] = useState(false);
+    const [touchConnectSource, setTouchConnectSource] = useState(null);
+    const pinchState = useRef(null);
+    const longPressTimerId = useRef(null);
+    const longPressPointerId = useRef(null);
+    const longPressOrigin = useRef(null);
+    const longPressTarget = useRef(null);
+    const panRef = useRef(pan);
+    const zoomRef = useRef(zoom);
+    useEffect(() => {
+        panRef.current = pan;
+    }, [pan]);
+    useEffect(() => {
+        zoomRef.current = zoom;
+    }, [zoom]);
+    useEffect(() => {
+        if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+            return;
+        }
+        const query = window.matchMedia("(pointer: coarse)");
+        const update = () => setIsCoarsePointer(query.matches);
+        update();
+        if (typeof query.addEventListener === "function") {
+            query.addEventListener("change", update);
+            return () => query.removeEventListener("change", update);
+        }
+        query.addListener(update);
+        return () => query.removeListener(update);
+    }, []);
+    useEffect(() => {
+        setTouchConnectSource(null);
+    }, [graph?.id]);
+    const clampZoom = useCallback((value) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value)), []);
+    const clearPinchIfNeeded = useCallback((pointerId) => {
+        if (typeof pointerId === "number") {
+            pointerPositions.current.delete(pointerId);
+        }
+        if (pointerPositions.current.size < 2) {
+            pinchState.current = null;
+        }
+    }, []);
+    const clearLongPress = useCallback(() => {
+        if (longPressTimerId.current !== null) {
+            window.clearTimeout(longPressTimerId.current);
+            longPressTimerId.current = null;
+        }
+        longPressPointerId.current = null;
+        longPressOrigin.current = null;
+        longPressTarget.current = null;
+    }, []);
+    const triggerLongPress = useCallback(() => {
+        const target = longPressTarget.current;
+        clearLongPress();
+        if (!target) {
+            return;
+        }
+        if (target.type === "node" && onDeleteNode) {
+            const maybe = onDeleteNode(target.id);
+            if (maybe?.then) {
+                maybe.catch(() => undefined);
+            }
+            setTouchConnectSource((prev) => {
+                if (prev?.kind === "node" && prev.nodeId === target.id) {
+                    return null;
+                }
+                return prev;
+            });
+        }
+        else if (target.type === "edge" && onDeleteEdge) {
+            const maybe = onDeleteEdge(target.id);
+            if (maybe?.then) {
+                maybe.catch(() => undefined);
+            }
+            setTouchConnectSource((prev) => {
+                if ((prev === null || prev === void 0 ? void 0 : prev.kind) === "hyper" && (prev === null || prev === void 0 ? void 0 : prev.edgeId) === target.id) {
+                    return null;
+                }
+                return prev;
+            });
+        }
+    }, [clearLongPress, onDeleteEdge, onDeleteNode]);
+    const scheduleLongPress = useCallback((event, target) => {
+        if (event.pointerType !== "touch" ||
+            !isCoarsePointer ||
+            (target.type === "node" && !onDeleteNode) ||
+            (target.type === "edge" && !onDeleteEdge)) {
+            return;
+        }
+        clearLongPress();
+        longPressPointerId.current = event.pointerId;
+        longPressOrigin.current = { x: event.clientX, y: event.clientY };
+        longPressTarget.current = target;
+        longPressTimerId.current = window.setTimeout(() => {
+            triggerLongPress();
+        }, LONG_PRESS_DURATION_MS);
+    }, [clearLongPress, isCoarsePointer, onDeleteEdge, onDeleteNode, triggerLongPress]);
+    useEffect(() => () => {
+        clearLongPress();
+    }, [clearLongPress]);
+    const handleTouchHyperTap = useCallback((edgeRef, role, allowEdges) => {
+        if (!onAttachEdgeMember) {
+            return;
+        }
+        setTouchConnectSource((prev) => {
+            if (prev && prev.kind === "hyper") {
+                const canTargetEdge = allowEdges || prev.allowEdgeTargets || prev.edgeId === edgeRef;
+                if (!canTargetEdge) {
+                    return prev;
+                }
+                const maybe = onAttachEdgeMember(prev.edgeId, {
+                    kind: prev.role,
+                    targetEdgeId: edgeRef,
+                });
+                if (maybe?.then) {
+                    maybe.catch(() => undefined);
+                }
+                return null;
+            }
+            return {
+                kind: "hyper",
+                edgeId: edgeRef,
+                role,
+                allowEdgeTargets: allowEdges,
+            };
+        });
+    }, [onAttachEdgeMember]);
+    const applyPinchGesture = useCallback(() => {
+        if (!svgRef.current) {
+            return;
+        }
+        const points = Array.from(pointerPositions.current.values());
+        if (points.length < 2) {
+            return;
+        }
+        const [first, second] = points;
+        const distance = Math.hypot(second.x - first.x, second.y - first.y) || 1;
+        const rect = svgRef.current.getBoundingClientRect();
+        const centerClient = {
+            x: (first.x + second.x) / 2,
+            y: (first.y + second.y) / 2,
+        };
+        if (!pinchState.current) {
+            pinchState.current = {
+                initialDistance: distance,
+                initialZoom: zoomRef.current,
+                centerWorld: {
+                    x: (centerClient.x - rect.left - panRef.current.x) / zoomRef.current,
+                    y: (centerClient.y - rect.top - panRef.current.y) / zoomRef.current,
+                },
+            };
+        }
+        const { initialDistance, initialZoom, centerWorld } = pinchState.current;
+        const scale = distance / Math.max(1, initialDistance);
+        const nextZoom = clampZoom(initialZoom * scale);
+        const nextPan = {
+            x: centerClient.x - rect.left - centerWorld.x * nextZoom,
+            y: centerClient.y - rect.top - centerWorld.y * nextZoom,
+        };
+        setZoom(nextZoom);
+        setPan(nextPan);
+        setDragState(null);
+    }, [clampZoom]);
     const fallbackHex = (arr) => {
         if (!arr || arr.length < 3) {
             return undefined;
@@ -105,10 +272,24 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
         };
     }, [pan, zoom]);
     const handlePointerDown = (event) => {
+        clearLongPress();
         // All pointer interactions funnel through this gate so we can decide early whether to pan,
         // start a drag, or simply let the click bubble to a selection handler.
         if (!graph) {
             return;
+        }
+        if (event.pointerType === "touch") {
+            pointerPositions.current.set(event.pointerId, {
+                x: event.clientX,
+                y: event.clientY,
+            });
+            if (pointerPositions.current.size >= 2) {
+                clearLongPress();
+                pinchState.current = null;
+                setDragState(null);
+                event.currentTarget.setPointerCapture(event.pointerId);
+                return;
+            }
         }
         const target = event.target;
         const nodeHandleId = target.getAttribute("data-node-handle");
@@ -118,11 +299,21 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
         const edgeHitAttr = target.getAttribute("data-edge-hit");
         const nodeId = target.dataset.nodeId;
         const edgeId = target.dataset.edgeId;
-        if (hyperSegmentAttr || edgeHitAttr) {
+        if (hyperSegmentAttr) {
             // Let click handlers handle selection without initiating drag/pan.
             return;
         }
+        if (edgeHitAttr) {
+            const [edgeFromHit] = edgeHitAttr.split(":");
+            if (edgeFromHit) {
+                scheduleLongPress(event, { type: "edge", id: edgeFromHit });
+            }
+            return;
+        }
         if (nodeHandleId) {
+            if (event.pointerType === "touch") {
+                event.preventDefault();
+            }
             if (!onConnectNodes) {
                 return;
             }
@@ -146,6 +337,9 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
             return;
         }
         if (edgeHandleAttr) {
+            if (event.pointerType === "touch") {
+                event.preventDefault();
+            }
             if (!onReconnectEdge) {
                 return;
             }
@@ -177,14 +371,19 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
             return;
         }
         if (hyperHandleAttr) {
-            if (!onAttachEdgeMember) {
-                return;
-            }
             const [edgeRef, role] = hyperHandleAttr.split(":");
             const anchorX = Number(target.getAttribute("data-anchor-x")) || 0;
             const anchorY = Number(target.getAttribute("data-anchor-y")) || 0;
             const allowEdges = target.getAttribute("data-allow-edge-targets") === "true";
             if (!edgeRef) {
+                return;
+            }
+            if (event.pointerType === "touch" && isCoarsePointer) {
+                event.preventDefault();
+                handleTouchHyperTap(edgeRef, role === "head" ? "head" : "tail", allowEdges);
+                return;
+            }
+            if (!onAttachEdgeMember) {
                 return;
             }
             setDragState({
@@ -216,6 +415,7 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                 return;
             onSelectNode?.(nodeId);
             onSelectSegment?.(null);
+            scheduleLongPress(event, { type: "node", id: nodeId });
             setDragState({
                 type: "node",
                 pointerId: event.pointerId,
@@ -244,6 +444,25 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
         event.currentTarget.setPointerCapture(event.pointerId);
     };
     const handlePointerMove = (event) => {
+        if (event.pointerType === "touch") {
+            pointerPositions.current.set(event.pointerId, {
+                x: event.clientX,
+                y: event.clientY,
+            });
+            if (pointerPositions.current.size >= 2) {
+                clearLongPress();
+                event.preventDefault();
+                applyPinchGesture();
+                return;
+            }
+            if (event.pointerId === longPressPointerId.current && longPressOrigin.current) {
+                const dx = event.clientX - longPressOrigin.current.x;
+                const dy = event.clientY - longPressOrigin.current.y;
+                if (Math.hypot(dx, dy) > LONG_PRESS_MOVE_THRESHOLD) {
+                    clearLongPress();
+                }
+            }
+        }
         if (!dragState) {
             return;
         }
@@ -296,9 +515,6 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                 let bestId;
                 let bestDist = Number.POSITIVE_INFINITY;
                 Object.entries(edgeMidpoints).forEach(([edgeId, pos]) => {
-                    if (edgeId === dragState.edgeId) {
-                        return;
-                    }
                     const dx = pos.x - world.x;
                     const dy = pos.y - world.y;
                     const dist = Math.hypot(dx, dy);
@@ -317,12 +533,16 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                     ...prev,
                     currentPos: world,
                     hoverTargetId: hovered?.id,
-                    hoverEdgeId: hoveredEdgeId && hoveredEdgeId !== prev.edgeId ? hoveredEdgeId : undefined,
+                    hoverEdgeId: hoveredEdgeId || undefined,
                 };
             });
         }
     };
     const handlePointerUp = (event) => {
+        if (event.pointerType === "touch") {
+            clearPinchIfNeeded(event.pointerId);
+        }
+        clearLongPress();
         if (!dragState) {
             return;
         }
@@ -337,6 +557,33 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                 const node = localNodes[dragState.nodeId];
                 if (node && typeof node.x === "number" && typeof node.y === "number") {
                     onNodePositionChange?.(dragState.nodeId, node.x, node.y);
+                }
+            }
+            else if (event.pointerType === "touch" &&
+                isCoarsePointer &&
+                touchConnectSource?.kind === "hyper" &&
+                onAttachEdgeMember) {
+                const source = touchConnectSource;
+                setTouchConnectSource(null);
+                const maybe = onAttachEdgeMember(source.edgeId, {
+                    kind: source.role,
+                    targetNodeId: dragState.nodeId,
+                });
+                if (maybe?.then) {
+                    maybe.catch(() => undefined);
+                }
+            }
+            else if (event.pointerType === "touch" && isCoarsePointer && onConnectNodes) {
+                if ((touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.kind) === "node") {
+                    const sourceId = touchConnectSource.nodeId;
+                    setTouchConnectSource(null);
+                    const maybe = onConnectNodes(sourceId, dragState.nodeId);
+                    if (maybe?.then) {
+                        maybe.catch(() => undefined);
+                    }
+                }
+                else {
+                    setTouchConnectSource({ kind: "node", nodeId: dragState.nodeId });
                 }
             }
             releasePointer();
@@ -354,7 +601,8 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
             if (dragState.mode === "attach-head" || dragState.mode === "attach-tail") {
                 if (dragState.edgeId && onAttachEdgeMember) {
                     const targetNodeId = dragState.hoverTargetId ?? fallbackTarget?.id;
-                    const targetEdgeId = dragState.allowEdgeTargets && dragState.hoverEdgeId
+                    const targetEdgeId = dragState.hoverEdgeId &&
+                        (dragState.allowEdgeTargets || dragState.hoverEdgeId === dragState.edgeId)
                         ? dragState.hoverEdgeId
                         : undefined;
                     if (targetNodeId || targetEdgeId) {
@@ -372,9 +620,7 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                 return;
             }
             const targetId = dragState.hoverTargetId ?? fallbackTarget?.id;
-            if (targetId &&
-                targetId !== dragState.dragNodeId &&
-                (dragState.mode === "new" ? targetId !== dragState.anchorNodeId : true)) {
+            if (targetId) {
                 let maybe = undefined;
                 if (dragState.mode === "new") {
                     maybe = onConnectNodes?.(dragState.anchorNodeId, targetId);
@@ -394,13 +640,29 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
         }
         releasePointer();
     };
+    const handlePointerLeave = (event) => {
+        if (event.pointerType === "touch") {
+            clearPinchIfNeeded(event.pointerId);
+            clearLongPress();
+        }
+        setDragState(null);
+    };
+    const handlePointerCancel = (event) => {
+        if (event.pointerType === "touch") {
+            clearPinchIfNeeded(event.pointerId);
+            clearLongPress();
+        }
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        if ((dragState?.pointerId) === event.pointerId) {
+            setDragState(null);
+        }
+    };
     const handleWheel = (event) => {
         event.preventDefault();
         const direction = event.deltaY > 0 ? 0.9 : 1.1;
-        setZoom((prev) => {
-            const next = Math.min(4, Math.max(0.25, prev * direction));
-            return next;
-        });
+        setZoom((prev) => clampZoom(prev * direction));
     };
     const handleDoubleClick = (event) => {
         if (!graph)
@@ -503,7 +765,7 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                     gap: "0.75rem",
                     flexWrap: "wrap",
                     color: "#0f172a",
-                }, children: [_jsx("h2", { style: { margin: 0 }, children: "Visualization" }), _jsx("small", { style: { color: "#475569" }, children: "Drag to pan, scroll to zoom, double click to add, drag node ring to connect, drag edge tips to rewire" })] })), _jsxs("div", { style: canvasWrapperStyle, children: [onToggleFullscreen && (_jsxs("button", { type: "button", onClick: onToggleFullscreen, style: {
+                }, children: [_jsx("h2", { style: { margin: 0 }, children: "Visualization" }), _jsx("small", { style: { color: "#475569" }, children: "Drag to pan, scroll or pinch to zoom, double tap to add, drag node ring to connect, drag edge tips to rewire" })] })), _jsxs("div", { style: canvasWrapperStyle, children: [onToggleFullscreen && (_jsxs("button", { type: "button", onClick: onToggleFullscreen, style: {
                             position: "absolute",
                             top: isFullscreen ? 32 : 16,
                             right: isFullscreen ? 32 : 16,
@@ -523,12 +785,16 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                             border: "1px solid #e2e8f0",
                             background: effectiveBackgroundColor,
                             touchAction: "none",
-                        }, onPointerDown: handlePointerDown, onPointerMove: handlePointerMove, onPointerUp: handlePointerUp, onPointerLeave: () => setDragState(null), onWheel: handleWheel, onDoubleClick: handleDoubleClick, onPointerDownCapture: (event) => {
+                        }, onPointerDown: handlePointerDown, onPointerMove: handlePointerMove, onPointerUp: handlePointerUp, onPointerLeave: handlePointerLeave, onPointerCancel: handlePointerCancel, onWheel: handleWheel, onDoubleClick: handleDoubleClick, onPointerDownCapture: (event) => {
+                            if (event.pointerType === "touch" && pointerPositions.current.size >= 2) {
+                                return;
+                            }
                             const target = event.target;
                             if (target?.hasAttribute("data-hyper-segment")) {
                                 return;
                             }
                             if (event.target === event.currentTarget) {
+                                setTouchConnectSource(null);
                                 onSelectNode?.(null);
                                 onSelectEdge?.(null);
                                 onSelectSegment?.(null);
@@ -591,6 +857,12 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                                             x: x1 + (x2 - x1) * 0.65,
                                             y: y1 + (y2 - y1) * 0.65,
                                         };
+                    const tailTouchActive = (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.kind) === "hyper" &&
+                        (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.edgeId) === edge.id &&
+                        (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.role) === "tail";
+                    const headTouchActive = (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.kind) === "hyper" &&
+                        (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.edgeId) === edge.id &&
+                        (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.role) === "head";
                                         // Each edge is split into "outer" and "inner" segments so the selection scope can
                                         // highlight the mainline or the entire hyper-edge structure independently.
                                         const hitSegments = [
@@ -676,7 +948,7 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                                                                 ? "#0ea5e9"
                                                                 : isMainlineSelected
                                                                     ? "#f97316"
-                                                                    : "#94a3b8" })] })), showHyperHandles && (_jsxs(_Fragment, { children: [_jsx("circle", { "data-hyper-handle": `${edge.id}:tail`, "data-anchor-x": tailHandlePos.x, "data-anchor-y": tailHandlePos.y, "data-allow-edge-targets": allowEdgeAttachments ? "true" : "false", cx: tailHandlePos.x, cy: tailHandlePos.y, r: 7, fill: "#fef3c7", stroke: "#f97316", strokeWidth: 2, style: { cursor: "crosshair" } }), _jsx("circle", { "data-hyper-handle": `${edge.id}:head`, "data-anchor-x": headHandlePos.x, "data-anchor-y": headHandlePos.y, "data-allow-edge-targets": allowEdgeAttachments ? "true" : "false", cx: headHandlePos.x, cy: headHandlePos.y, r: 7, fill: "#e0f2fe", stroke: "#0284c7", strokeWidth: 2, style: { cursor: "crosshair" } })] }))] }, edge.id));
+                                                                    : "#94a3b8" })] })), showHyperHandles && (_jsxs(_Fragment, { children: [_jsx("circle", { "data-hyper-handle": `${edge.id}:tail`, "data-anchor-x": tailHandlePos.x, "data-anchor-y": tailHandlePos.y, "data-allow-edge-targets": allowEdgeAttachments ? "true" : "false", cx: tailHandlePos.x, cy: tailHandlePos.y, r: 7, fill: tailTouchActive ? "#fde047" : "#fef3c7", stroke: tailTouchActive ? "#d97706" : "#f97316", strokeWidth: tailTouchActive ? 3 : 2, style: { cursor: "crosshair" } }), _jsx("circle", { "data-hyper-handle": `${edge.id}:head`, "data-anchor-x": headHandlePos.x, "data-anchor-y": headHandlePos.y, "data-allow-edge-targets": allowEdgeAttachments ? "true" : "false", cx: headHandlePos.x, cy: headHandlePos.y, r: 7, fill: headTouchActive ? "#bae6fd" : "#e0f2fe", stroke: headTouchActive ? "#0369a1" : "#0284c7", strokeWidth: headTouchActive ? 3 : 2, style: { cursor: "crosshair" } })] }))] }, edge.id));
                                     }), dragState?.type === "edge" && (_jsxs(_Fragment, { children: [_jsx("line", { x1: dragState.anchorPos.x, y1: dragState.anchorPos.y, x2: dragState.currentPos.x, y2: dragState.currentPos.y, stroke: "#f97316", strokeWidth: 2, strokeDasharray: "4 4" }), _jsx("g", { transform: `translate(${(dragState.anchorPos.x + dragState.currentPos.x) / 2}, ${(dragState.anchorPos.y + dragState.currentPos.y) / 2}) rotate(${(Math.atan2(dragState.currentPos.y - dragState.anchorPos.y, dragState.currentPos.x - dragState.anchorPos.x) *
                                                     180) /
                                                     Math.PI})`, children: _jsx("polygon", { points: "8,0 0,-4 0,4", fill: "#f97316" }) })] })), renderedNodes.map((node) => {
@@ -686,10 +958,14 @@ export function GraphCanvas({ graph, selectedNodeId, selectedEdgeId, selectedSeg
                                             ? rawLabel
                                             : String(rawLabel ?? "");
                                         const isEdgeHover = dragState?.type === "edge" && dragState.hoverTargetId === node.id;
-                                        return (_jsxs("g", { transform: `translate(${node.x ?? 0}, ${node.y ?? 0})`, children: [onConnectNodes && (_jsx("circle", { "data-node-handle": node.id, r: isSelected ? 32 : 28, fill: "transparent", stroke: dragState?.type === "edge" &&
-                                                        dragState.mode === "new" &&
-                                                        dragState.anchorNodeId === node.id
-                                                        ? "#f97316"
-                                                        : "rgba(148, 163, 184, 0.5)", strokeDasharray: "6 4", strokeWidth: 2.5, style: { pointerEvents: "stroke", cursor: "crosshair" } })), _jsx("circle", { "data-node-id": node.id, r: isSelected ? 26 : 22, fill: isSelected ? "#2563eb" : "#3b82f6", opacity: 0.9, stroke: isEdgeHover ? "#f97316" : isSelected ? "#1e40af" : "transparent", strokeWidth: isEdgeHover ? 3 : 2 }), _jsx("text", { "data-node-id": node.id, textAnchor: "middle", fill: "#fff", fontSize: "12", dy: "0.35em", fontWeight: "600", children: label })] }, node.id));
+                                        const isTouchSourceActive = (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.kind) === "node" &&
+                                            (touchConnectSource === null || touchConnectSource === void 0 ? void 0 : touchConnectSource.nodeId) === node.id;
+                                        return (_jsxs("g", { transform: `translate(${node.x ?? 0}, ${node.y ?? 0})`, children: [onConnectNodes && (_jsxs(_Fragment, { children: [isCoarsePointer && (_jsx("circle", { "data-node-handle": node.id, r: isSelected ? 33 : 29, fill: "none", stroke: "transparent", strokeWidth: 24, pointerEvents: "stroke" })), _jsx("circle", { "data-node-handle": node.id, r: isSelected ? 32 : 28, fill: "transparent", stroke: isTouchSourceActive
+                                                        ? "#facc15"
+                                                        : dragState?.type === "edge" &&
+                                                            dragState.mode === "new" &&
+                                                            dragState.anchorNodeId === node.id
+                                                            ? "#f97316"
+                                                            : "rgba(148, 163, 184, 0.5)", strokeDasharray: isTouchSourceActive ? "0" : "6 4", strokeWidth: isTouchSourceActive ? 4 : 2.5, style: { pointerEvents: "stroke", cursor: "crosshair" } })] })), _jsx("circle", { "data-node-id": node.id, r: isSelected ? 26 : 22, fill: isSelected ? "#2563eb" : "#3b82f6", opacity: 0.9, stroke: isEdgeHover ? "#f97316" : isSelected ? "#1e40af" : "transparent", strokeWidth: isEdgeHover ? 3 : 2 }), _jsx("text", { "data-node-id": node.id, textAnchor: "middle", fill: "#fff", fontSize: "12", dy: "0.35em", fontWeight: "600", children: label })] }, node.id));
                                     }), renderEdgeHandles()] })] })] })] }));
 }
